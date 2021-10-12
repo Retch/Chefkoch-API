@@ -36,7 +36,7 @@ class Hint:
 
 
 class Recipe:
-    def __init__(self, name, img, id, category, ingredients):
+    def __init__(self, name, img, id, hints, descrip, category, ingredients):
         self.name = name
         self.img = img
         self.id = id
