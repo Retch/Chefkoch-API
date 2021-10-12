@@ -26,12 +26,22 @@ class Ingredient:
     def __str__(self):
         return json.dumps(self.__dict__, ensure_ascii=False)
 
+    
+class Hint:
+    def __init__(self, text):
+        self.text = text
+
+    def __str__(self):
+        return json.dumps(self.__dict__, ensure_ascii=False)
+
 
 class Recipe:
     def __init__(self, name, img, id, category, ingredients):
         self.name = name
         self.img = img
         self.id = id
+        self.hints = hints
+        self.descrip = descrip
         self.category = category
         self.ingredients = ingredients
 
@@ -40,15 +50,20 @@ class Recipe:
         name = json_obj['name']
         img = json_obj['img']
         id = json_obj['id']
+        hints = [Hint("TEST")
+                       for hint in json_obj['hints']]
+        descrip = json_obj['descrip']
         category = Category(json_obj['category']['title'], id=json_obj['category']['id'])
         ingredients = [Ingredient(ingredient['name'], ingredient['amount']) for ingredient in json_obj['ingredients']]
-        return Recipe(name, img, id, category, ingredients)
+        return Recipe(name, img, id, hints, descrip, category, ingredients)
 
     def __str__(self):
         return json.dumps({
             "name": self.name,
             "img": self.img,
             "id": self.id,
+            "hints": [hint for hint in self.hints],
+            "description": self.descrip,
             "category": self.category.__dict__,
             "ingredients": [ingredient.__dict__ for ingredient in self.ingredients]
         }, ensure_ascii=False)
@@ -101,6 +116,13 @@ class ChefKochAPI:
                 recipe_soup = BeautifulSoup(recipe_response.text, "html5lib")
                 all_imgs = recipe_soup.find_all("img")
                 recipe_img_url = all_imgs[0]['src']
+                all_hints = recipe_soup.select("body > main > article.ds-box.ds-grid-float.ds-col-12.ds-col-m-8.ds-or-3 > small > span")
+                recipe_hints = []
+                for hint in all_hints:
+                    h = hint.contents[1].lstrip().rstrip().replace(u"\u00A0", " ")
+                    recipe_hints.append(h)
+                recipe_descrip = recipe_soup.select_one("body > main > article.ds-box.ds-grid-float.ds-col-12.ds-col-m-8.ds-or-3 > div:nth-child(3)").get_text()
+                recipe_descrip = recipe_descrip.lstrip().rstrip()
                 recipe_name = recipe_soup.find("h1").contents[0]
                 ingredients_table = recipe_soup.find("table", {"class": "ingredients"})
                 ingredients_table_body = ingredients_table.find("tbody")
@@ -112,7 +134,7 @@ class ChefKochAPI:
                         Ingredient(re.sub(' +', ' ', cols[1].text.strip().replace(u"\u00A0", " ")),
                                    re.sub(' +', ' ', cols[0].text.strip().replace(u"\u00A0", " "))))
 
-                yield Recipe(recipe_name.replace(u"\u00A0", " "), recipe_img_url.replace(u"\u00A0", " "), recipe_id.replace(u"\u00A0", " "),
+                yield Recipe(recipe_name.replace(u"\u00A0", " "), recipe_img_url.replace(u"\u00A0", " "), recipe_id.replace(u"\u00A0", " "), recipe_hints, recipe_descrip.replace(u"\u00A0", " "),
                              category, recipe_ingredients)
 
                 if 0 < end_index < index:
