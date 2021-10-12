@@ -28,8 +28,9 @@ class Ingredient:
 
 
 class Recipe:
-    def __init__(self, name, id, category, ingredients):
+    def __init__(self, name, img, id, category, ingredients):
         self.name = name
+        self.img = img
         self.id = id
         self.category = category
         self.ingredients = ingredients
@@ -37,14 +38,16 @@ class Recipe:
     @staticmethod
     def from_json(json_obj):
         name = json_obj['name']
+        img = json_obj['img']
         id = json_obj['id']
         category = Category(json_obj['category']['title'], id=json_obj['category']['id'])
         ingredients = [Ingredient(ingredient['name'], ingredient['amount']) for ingredient in json_obj['ingredients']]
-        return Recipe(name, id, category, ingredients)
+        return Recipe(name, img, id, category, ingredients)
 
     def __str__(self):
         return json.dumps({
             "name": self.name,
+            "img": self.img,
             "id": self.id,
             "category": self.category.__dict__,
             "ingredients": [ingredient.__dict__ for ingredient in self.ingredients]
@@ -96,6 +99,8 @@ class ChefKochAPI:
                     continue
 
                 recipe_soup = BeautifulSoup(recipe_response.text, "html5lib")
+                all_imgs = recipe_soup.find_all("img")
+                recipe_img_url = all_imgs[0]['src']
                 recipe_name = recipe_soup.find("h1").contents[0]
                 ingredients_table = recipe_soup.find("table", {"class": "ingredients"})
                 ingredients_table_body = ingredients_table.find("tbody")
@@ -107,7 +112,7 @@ class ChefKochAPI:
                         Ingredient(re.sub(' +', ' ', cols[1].text.strip().replace(u"\u00A0", " ")),
                                    re.sub(' +', ' ', cols[0].text.strip().replace(u"\u00A0", " "))))
 
-                yield Recipe(recipe_name.replace(u"\u00A0", " "), recipe_id.replace(u"\u00A0", " "),
+                yield Recipe(recipe_name.replace(u"\u00A0", " "), recipe_img_url.replace(u"\u00A0", " "), recipe_id.replace(u"\u00A0", " "),
                              category, recipe_ingredients)
 
                 if 0 < end_index < index:
