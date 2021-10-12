@@ -3,7 +3,12 @@ from chefkoch import ChefKochAPI, DataParser
 if __name__ == '__main__':
     categories = ChefKochAPI.get_categories()
 
-    category = categories[0]
+    category = None
+
+    for cat in categories:
+        if cat.title == "Hauptspeise":
+            category = cat
+            break
 
     recipes = ChefKochAPI.parse_recipes(category, 5)
 
