@@ -11,7 +11,7 @@ db = firestore.client()
 
 if __name__ == '__main__':
     categories = ChefKochAPI.get_categories()
-    amount = 5
+    amount = 300
     catname = "Hauptspeise"
 
     category = None
@@ -25,8 +25,10 @@ if __name__ == '__main__':
 
     firestre = db.collection(category.title).get()
     
+    counter = 0
     for recipe in recipes:
         if recipe.id not in firestre:
+            counter += 1
             db.collection(category.title).document(recipe.id).set(
                 {
                     "id": int(recipe.id),
@@ -38,4 +40,4 @@ if __name__ == '__main__':
                     "ingredients": [ingredient.__dict__ for ingredient in recipe.ingredients],
                 }
             )
-    print("Done")
+    print("Done uploading " + counter + " Recipes to Firestore!")
