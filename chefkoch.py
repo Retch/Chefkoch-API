@@ -118,6 +118,7 @@ class ChefKochAPI:
                 recipe_soup = BeautifulSoup(recipe_response.text, "html5lib")
                 all_imgs = recipe_soup.find_all("img")
                 recipe_img_url = all_imgs[0]['src']
+                recipe_img_url = re.sub("360x240","960x640", recipe_img_url)
                 all_hints = recipe_soup.select("body > main > article.ds-box.ds-grid-float.ds-col-12.ds-col-m-8.ds-or-3 > small > span")
                 recipe_hints = []
                 for hint in all_hints:
